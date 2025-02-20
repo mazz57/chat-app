@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import userModel from '../models/userModel.js';
 import { z } from 'zod';
 import { generateToken } from '../lib/utils.js';
+import cloudinary from '../lib/cloudinary.js';
 
 const signupSchema = z.object({
     name: z.string().min(1),
@@ -71,13 +72,35 @@ export const login = async(req,res) => {
 
 export const logout = (req,res) => {
     try {
-        res.cookie('jwt', '', {
-            httpOnly: true,
-            expires: new Date(0),
-        });
+        res.cookie('jwt', "", { maxAge: 0});
         res.status(200).json({ message: "User logged out successfully" });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.log({ message: error.message });
+        res.json({ message: "internal server error"});
     }
 }
 
+
+export const updataProfile = async (req,res) => {
+    try {
+        const { profilePic } = req.body;
+       const userId = req.user._id
+        
+       if(!profilePic){
+        return res.status(400).json({ message: " Profile pic is required"})
+       }
+
+        const uploadResponse = await cloudinary.uploader.upload(profilePic)
+
+       const updateuser = await userModel.findByIdAndUpdate(userId, {profilePic:uploadResponse.secure_url})
+
+       if(!updateuser){
+        return res.status(400).json({ message: "User not found"})
+       }
+       
+       
+    } catch (error) {   
+        console.log({ message: error.message });
+        res.status(500).json({ message: "internal server error"});
+    }
+}
