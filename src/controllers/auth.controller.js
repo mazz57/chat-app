@@ -23,7 +23,7 @@ export const signup = async (req, res) => {
         if (user) return res.status(400).json({ message: "Email already exists" });
 
         const salt = await bcrypt.genSalt (10)
-        const hashedPassword = await bcrypt.hash (password, salt)
+        const hashedPassword = await bcrypt.hash(password, salt)
         
         const newUser = new userModel({
         name,
@@ -80,7 +80,6 @@ export const logout = (req,res) => {
     }
 }
 
-
 export const updataProfile = async (req,res) => {
     try {
         const { profilePic } = req.body;
@@ -92,15 +91,28 @@ export const updataProfile = async (req,res) => {
 
         const uploadResponse = await cloudinary.uploader.upload(profilePic)
 
-       const updateuser = await userModel.findByIdAndUpdate(userId, {profilePic:uploadResponse.secure_url})
+       const updateuser = await userModel.findByIdAndUpdate(userId, {profilePic:uploadResponse.secure_url}, {new:true})
 
        if(!updateuser){
         return res.status(400).json({ message: "User not found"})
        }
+
+       res.status(200).json({ message: "Profile updated successfully"})
        
        
     } catch (error) {   
         console.log({ message: error.message });
+        res.status(500).json({ message: "internal server error"});
+    }
+}
+
+export const checkAuth = async (req,res) => {
+    try {
+        const user = req.user;
+        res.status(200).json({ user });
+
+    } catch (error) {
+        console.log("error in check authcontroller", error);
         res.status(500).json({ message: "internal server error"});
     }
 }

@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const Schema = mongoose.Schema;
 
@@ -20,7 +20,9 @@ const messageSchema = new Schema({
     image: { 
         type: String, 
         default: '' },
-});
+},
+{ timestamps: true },
+);
 
 const messageModel = mongoose.model('Message', messageSchema);
 
